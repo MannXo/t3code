@@ -1694,7 +1694,7 @@ export default function GitActionsControl({
                 {quickActionDisabledReason}
               </p>
             )}
-            <div onPointerEnter={refreshDisabledGitActions} onFocus={refreshDisabledGitActions}>
+            <div onPointerDown={refreshDisabledGitActions} onFocus={refreshDisabledGitActions}>
               <MenuSub
                 onOpenChange={(open) => {
                   if (open) requestVcsStatusRefresh(refreshVcsStatus, activeEnvironmentId, gitCwd);
@@ -1725,7 +1725,7 @@ export default function GitActionsControl({
         </ThreadDetailsControl>
       ) : compact && !gitActionProgress && !visibleInlineSuccess ? null : (
         <ActionGroup
-          onPointerEnter={refreshDisabledGitActions}
+          onPointerDown={refreshDisabledGitActions}
           onFocus={refreshDisabledGitActions}
           role="group"
           aria-label="Git actions"
