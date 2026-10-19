@@ -84,6 +84,7 @@ import { serverEnvironment } from "../state/server";
 import { previewEnvironment } from "../state/preview";
 import { readEnvironmentScope } from "../state/session";
 import { terminalEnvironment } from "../state/terminal";
+import { vcsEnvironment } from "../state/vcs";
 import { useEnvironmentScope } from "../state/session";
 import { openTerminalLinkInPreview } from "./preview/openTerminalLinkInPreview";
 import { useAtomCommand } from "../state/use-atom-command";
@@ -467,6 +468,9 @@ function TerminalSessionViewport({
     reportFailure: false,
   });
   const runTerminalResize = useAtomCommand(terminalEnvironment.resize, {
+    reportFailure: false,
+  });
+  const refreshVcsStatus = useAtomCommand(vcsEnvironment.refreshStatus, {
     reportFailure: false,
   });
   const hasHandledExitRef = useRef(false);
@@ -1109,6 +1113,11 @@ function TerminalSessionViewport({
     <div
       ref={containerRef}
       tabIndex={-1}
+      onBlur={(event) => {
+        if (event.currentTarget.contains(event.relatedTarget) || !document.hasFocus()) return;
+        // Terminal edits must recover disabled Git actions without opening their menu.
+        void refreshVcsStatus({ environmentId, input: { cwd: worktreePath ?? cwd } });
+      }}
       className="relative h-full w-full overflow-hidden bg-(--terminal-background)"
     />
   );

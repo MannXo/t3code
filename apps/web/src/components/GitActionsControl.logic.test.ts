@@ -433,7 +433,7 @@ describe("when: ref is clean, up to date, and has no open PR", () => {
   });
 });
 
-describe("hasGitActionMenuContent", () => {
+describe("git action menu availability", () => {
   const menuContent = (
     gitStatus: VcsStatusResult | null,
     overrides: Partial<Parameters<typeof hasGitActionMenuContent>[0]> = {},
@@ -446,31 +446,25 @@ describe("hasGitActionMenuContent", () => {
       ...overrides,
     });
 
-  it("is false for a clean, up-to-date ref where every action is disabled", () => {
-    assert.isFalse(menuContent(status()));
-  });
+  it("follows commit and push availability as a clean branch changes and returns to clean", () => {
+    const clean = status();
+    const edited = status({ hasWorkingTreeChanges: true });
+    const committed = status({ aheadCount: 1 });
 
-  it("is true when any action is enabled", () => {
-    assert.isTrue(menuContent(status({ hasWorkingTreeChanges: true })));
-    assert.isTrue(menuContent(status({ aheadCount: 1 })));
-  });
-
-  it("is false when the connection cannot change source control", () => {
-    assert.isFalse(
-      menuContent(status({ hasWorkingTreeChanges: true }), { canWriteSourceControl: false }),
+    assert.deepEqual(
+      [clean, edited, committed, clean].map((value) => menuContent(value)),
+      [false, true, true, false],
     );
+    assert.isFalse(menuContent(edited, { canWriteSourceControl: false }));
+    assert.isFalse(menuContent(null));
   });
 
-  it("is true when publishing is offered for a repo without a remote", () => {
-    assert.isTrue(
-      menuContent(status({ hasPrimaryRemote: false, hasUpstream: false }), {
-        canPublishRepository: true,
-      }),
-    );
-  });
+  it("keeps publishing and status errors accessible when there are no runnable actions", () => {
+    const unpublished = status({ hasPrimaryRemote: false, hasUpstream: false });
 
-  it("is true when there is a status error to read", () => {
-    assert.isTrue(menuContent(null, { hasStatusError: true }));
+    assert.isFalse(menuContent(unpublished));
+    assert.isTrue(menuContent(unpublished, { canPublishRepository: true }));
+    assert.isTrue(menuContent(null, { canWriteSourceControl: false, hasStatusError: true }));
   });
 });
 
